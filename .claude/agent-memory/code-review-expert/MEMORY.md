@@ -1,0 +1,2 @@
+- [Project Stack](project_stack.md) — Next.js 16.2.1, React 19, Tailwind v4, shadcn/ui, TypeScript strict mode
+- [Common Issues](common_issues.md) — Recurring patterns and anti-patterns found in initial full-codebase review

@@ -1,0 +1,1 @@
+- [Product Admin - Notion CMS Project](project_notion_admin.md) — Notion API 기반 상품 관리 어드민. @notionhq/client 미설치, 스타터 보일러플레이트 교체 필요.
