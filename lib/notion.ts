@@ -15,8 +15,8 @@ export function getNotionClient(): Client {
 }
 
 // Notion 페이지에서 Product 타입으로 변환
- 
 export function parseProductFromNotionPage(page: PageObjectResponse): Product {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const properties = page.properties as Record<string, any>
 
   return {

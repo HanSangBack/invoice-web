@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -19,44 +18,31 @@ import {
 } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import { productFormSchema, type ProductFormInput } from "@/lib/validation"
 import { PRODUCT_CATEGORIES } from "@/lib/constants"
 import type { ProductCategory } from "@/types"
-
-const productFormSchema = z.object({
-  name: z.string().min(1, "상품명을 입력해주세요").max(100),
-  category: z.enum(["전자제품", "의류", "기타"]),
-  price: z.coerce.number().min(0, "가격을 입력해주세요"),
-  stock: z.coerce.number().min(0).optional(),
-  description: z.string().max(500).optional(),
-  imageUrl: z.string().url().optional().or(z.literal("")),
-  releaseDate: z.string().optional(),
-})
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type ProductFormValues = z.infer<typeof productFormSchema>
 
 export function ProductForm() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
-   
+
   const {
     register,
     handleSubmit,
     formState: { errors },
     setValue,
     watch,
-  } = useForm({
+  } = useForm<ProductFormInput>({
     resolver: zodResolver(productFormSchema),
     defaultValues: {
       category: "전자제품",
       stock: 0,
     },
-  } as any)
+  })
 
-  const selectedCategory = watch("category") as ProductCategory
+  const selectedCategory = watch("category")
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: ProductFormInput) => {
     setIsSubmitting(true)
     try {
       const response = await fetch("/api/products", {
@@ -65,17 +51,26 @@ export function ProductForm() {
         body: JSON.stringify(data),
       })
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await response.json() as any
+      interface ApiErrorResponse {
+        success: false
+        error: string
+        details?: Array<{ path: string[]; message: string }>
+      }
+
+      interface ApiSuccessResponse {
+        success: true
+        data: unknown
+      }
+
+      const result = (await response.json()) as ApiErrorResponse | ApiSuccessResponse
 
       if (!response.ok) {
-        if (result.details) {
-          // Zod 에러 상세 정보
-          result.details.forEach((error: any) => {
+        if ("details" in result && result.details) {
+          result.details.forEach((error) => {
             toast.error(`${error.path.join(".")}: ${error.message}`)
           })
-        } else {
-          toast.error((result as any).error || "상품 등록에 실패했습니다")
+        } else if ("error" in result) {
+          toast.error(result.error || "상품 등록에 실패했습니다")
         }
         return
       }
@@ -111,9 +106,7 @@ export function ProductForm() {
               disabled={isSubmitting}
             />
             {errors.name && (
-              <p className="text-sm text-destructive">
-                {String((errors.name as any).message)}
-              </p>
+              <p className="text-sm text-destructive">{errors.name.message}</p>
             )}
           </div>
 
@@ -138,9 +131,7 @@ export function ProductForm() {
                 </SelectContent>
               </Select>
               {errors.category && (
-                <p className="text-sm text-destructive">
-                  {String((errors.category as any).message)}
-                </p>
+                <p className="text-sm text-destructive">{errors.category.message}</p>
               )}
             </div>
 
@@ -154,9 +145,7 @@ export function ProductForm() {
                 disabled={isSubmitting}
               />
               {errors.price && (
-                <p className="text-sm text-destructive">
-                  {String((errors.price as any).message)}
-                </p>
+                <p className="text-sm text-destructive">{errors.price.message}</p>
               )}
             </div>
           </div>
@@ -173,9 +162,7 @@ export function ProductForm() {
                 disabled={isSubmitting}
               />
               {errors.stock && (
-                <p className="text-sm text-destructive">
-                  {String((errors.stock as any).message)}
-                </p>
+                <p className="text-sm text-destructive">{errors.stock.message}</p>
               )}
             </div>
 
@@ -188,9 +175,7 @@ export function ProductForm() {
                 disabled={isSubmitting}
               />
               {errors.releaseDate && (
-                <p className="text-sm text-destructive">
-                  {String((errors.releaseDate as any).message)}
-                </p>
+                <p className="text-sm text-destructive">{errors.releaseDate.message}</p>
               )}
             </div>
           </div>
@@ -206,9 +191,7 @@ export function ProductForm() {
               disabled={isSubmitting}
             />
             {errors.imageUrl && (
-              <p className="text-sm text-destructive">
-                {String((errors.imageUrl as any).message)}
-              </p>
+              <p className="text-sm text-destructive">{errors.imageUrl.message}</p>
             )}
           </div>
 
@@ -223,9 +206,7 @@ export function ProductForm() {
               disabled={isSubmitting}
             />
             {errors.description && (
-              <p className="text-sm text-destructive">
-                {String((errors.description as any).message)}
-              </p>
+              <p className="text-sm text-destructive">{errors.description.message}</p>
             )}
           </div>
 

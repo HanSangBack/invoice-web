@@ -1,20 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { createProduct, getProducts } from "@/lib/notion"
-import { ProductFormValues } from "@/types"
+import { productFormSchema } from "@/lib/validation"
+import type { ProductCategory } from "@/types"
 import { revalidatePath } from "next/cache"
-
-// 상품 폼 검증 스키마
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const productFormSchema: any = z.object({
-  name: z.string().min(1, "상품명은 필수입니다").max(100),
-  category: z.enum(["전자제품", "의류", "기타"]),
-  price: z.number().min(0, "가격은 0 이상이어야 합니다"),
-  stock: z.number().min(0, "재고는 0 이상이어야 합니다").optional(),
-  description: z.string().max(500).optional(),
-  imageUrl: z.string().url().optional().or(z.literal("")),
-  releaseDate: z.string().optional(),
-})
 
 // GET /api/products - 상품 목록 조회
 export async function GET(request: NextRequest) {
@@ -23,7 +12,9 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get("category")
 
     const products = await getProducts(
-      category ? { category: category as any } : undefined
+      category
+        ? { category: category as ProductCategory }
+        : undefined
     )
 
     return NextResponse.json({
@@ -52,7 +43,7 @@ export async function POST(request: NextRequest) {
     const validatedData = productFormSchema.parse(body)
 
     // 상품 생성
-    const product = await createProduct(validatedData as ProductFormValues)
+    const product = await createProduct(validatedData)
 
     // 상품 목록 페이지 revalidate
     revalidatePath("/products")
@@ -73,7 +64,7 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           error: "입력 데이터가 유효하지 않습니다",
-          details: (error as any).errors,
+          details: error.issues,
         },
         { status: 400 }
       )

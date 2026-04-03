@@ -24,3 +24,15 @@ export const PRODUCT_CATEGORIES: { label: string; value: ProductCategory }[] = [
   { label: "의류", value: "의류" },
   { label: "기타", value: "기타" },
 ]
+
+// 페이지네이션
+export const ITEMS_PER_PAGE = 10
+
+// 정렬 옵션
+export const DEFAULT_SORT = "latest"
+
+export const SORT_OPTIONS = [
+  { label: "최신순", value: "latest" },
+  { label: "가격 낮은순", value: "price_asc" },
+  { label: "가격 높은순", value: "price_desc" },
+] as const
